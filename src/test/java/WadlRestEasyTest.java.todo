@@ -1,0 +1,165 @@
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit.InSequence;
+import org.jboss.arquillian.test.api.ArquillianResource;
+import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.jboss.shrinkwrap.resolver.api.maven.Maven;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+@RunWith( Arquillian.class )
+public class WadlRestEasyTest
+{
+	private Client client;
+
+	@ArquillianResource
+	private URL deploymentURL;
+
+	@Deployment( testable = false )
+	public static WebArchive createDeployment( )
+	{
+		WebArchive war = ShrinkWrap.create ( WebArchive.class, "test.war" );
+		war.addPackages ( true, "com.rtmdn.jpa" );
+		war.addPackages ( true, "com.rtmdn.exam.wsd" );
+
+		war.addAsResource ( "META-INF/beans.xml", "META-INF/beans.xml" );
+		war.addAsResource ( "META-INF/test-persistence.xml", "META-INF/persistence.xml" );
+		war.addAsResource ( "META-INF/drop.ddl", "META-INF/drop.ddl" );
+		war.addAsResource ( "META-INF/create.ddl", "META-INF/create.ddl" );
+		war.addAsResource ( "META-INF/load.ddl", "META-INF/load.ddl" );
+
+		war.addAsWebInfResource ( "jbossas-ds.xml", "jbossas-ds.xml" );
+
+		war.addAsWebInfResource ( "hornetq-jms.xml", "hornetq-jms.xml" );
+
+		war.addAsWebInfResource ( "reasteasy-wadle-web.xml", "web.xml" );
+
+		war.addAsLibraries ( Maven.resolver ( ).loadPomFromFile ( "pom.xml" ).resolve ( "org.codehaus.jackson:jackson-mapper-asl" ).withoutTransitivity ( ).asSingleFile ( ) );
+		war.addAsLibraries ( Maven.resolver ( ).loadPomFromFile ( "pom.xml" ).resolve ( "org.jboss.resteasy:resteasy-wadl" ).withoutTransitivity ( ).asSingleFile ( ) );
+
+		System.out.println ( war.toString ( true ) );
+
+		return war;
+	}
+
+	@Before
+	public void setup( ) throws MalformedURLException, URISyntaxException
+	{
+		System.out.println ( "deploymentURL = " + deploymentURL );
+
+		client = ClientBuilder.newClient ( );
+	}
+
+	@After
+	public void after( )
+	{
+		client.close ( );
+	}
+
+	private org.jboss.resteasy.wadl.jaxb.Resource findResourceByName( Object target, String resourceName )
+	{
+		if ( target.getClass ( ).equals ( org.jboss.resteasy.wadl.jaxb.Application.class ) )
+		{
+			for ( org.jboss.resteasy.wadl.jaxb.Resource resource : ((org.jboss.resteasy.wadl.jaxb.Application) target).getResources ( ).get ( 0 ).getResource ( ) )
+			{
+				if ( resource.getPath ( ).equals ( resourceName ) )
+				{
+					return resource;
+				}
+			}
+		}
+		else if ( target.getClass ( ).equals ( org.jboss.resteasy.wadl.jaxb.Resource.class ) )
+		{
+			for ( Object resource : ((org.jboss.resteasy.wadl.jaxb.Resource) target).getMethodOrResource ( ) )
+			{
+				if ( resource.getClass ( ).equals ( org.jboss.resteasy.wadl.jaxb.Resource.class )
+					&& ((org.jboss.resteasy.wadl.jaxb.Resource) resource).getPath ( ).equals ( resourceName ) )
+				{
+					return (org.jboss.resteasy.wadl.jaxb.Resource) resource;
+				}
+			}
+		}
+		
+		return null;
+	}
+
+	@Test
+	@InSequence( 1 )
+	public void testGetWadl1( ) throws URISyntaxException, MalformedURLException
+	{
+		System.out.println ( "\n --- testGetWadl1( )" );
+		
+		WebTarget target = client.target ( URI.create ( new URL ( deploymentURL, "resources/application.xml" ).toExternalForm ( ) ) );
+		Response response = target.request ( ).get ( );
+		
+		System.out.println ( "response.getMediaType ( ) = " + response.getMediaType ( ) );
+		System.out.println ( "response.getStatus ( ) = " + response.getStatus ( ) );
+		System.out.println ( "response.hasEntity ( ) = " + response.hasEntity ( ) );
+		
+		// get Application
+		org.jboss.resteasy.wadl.jaxb.Application application = response.readEntity ( org.jboss.resteasy.wadl.jaxb.Application.class );
+		
+		// get BasicResource
+		org.jboss.resteasy.wadl.jaxb.Resource basicResource = findResourceByName ( application, "/basic" );
+		/*System.out.println ( "response.getMediaType ( ) = " + response.getMediaType ( ) );
+		System.out.println ( "response.getStatus ( ) = " + response.getStatus ( ) );
+		System.out.println ( "response.hasEntity ( ) = " + response.hasEntity ( ) );
+
+		if ( response.getStatus ( ) != 200 )
+			throw new RuntimeException ( "request failed with status " + response.getStatus ( ) );
+
+		System.out.println ( "response.readEntity ( ) = " + response.readEntity ( String.class ) );*/
+	}
+
+	//@Test
+	//@InSequence( 2 )
+	public void testGetWadl2( ) throws URISyntaxException, MalformedURLException
+	{
+		System.out.println ( "\n --- testGetWadl( )" );
+
+		WebTarget target = client.target ( URI.create ( new URL ( deploymentURL, "application.xml" ).toExternalForm ( ) ) );
+		Response response = target.request ( ).accept ( MediaType.APPLICATION_XML ).get ( );
+
+		System.out.println ( "response.getMediaType ( ) = " + response.getMediaType ( ) );
+		System.out.println ( "response.getStatus ( ) = " + response.getStatus ( ) );
+		System.out.println ( "response.hasEntity ( ) = " + response.hasEntity ( ) );
+
+		if ( response.getStatus ( ) != 200 )
+			throw new RuntimeException ( "request failed with status " + response.getStatus ( ) );
+
+		System.out.println ( "response.readEntity ( ) = " + response.readEntity ( String.class ) );
+	}
+
+	//@Test
+	//@InSequence( 3 )
+	public void testGetWadl3( ) throws URISyntaxException, MalformedURLException
+	{
+		System.out.println ( "\n --- testGetWadl( )" );
+		
+		WebTarget target = client.target ( URI.create ( new URL ( deploymentURL, "application.xml" ).toExternalForm ( ) ) );
+		Response response = target.request ( ).accept ( MediaType.APPLICATION_JSON ).get ( );
+
+		System.out.println ( "response.getMediaType ( ) = " + response.getMediaType ( ) );
+		System.out.println ( "response.getStatus ( ) = " + response.getStatus ( ) );
+		System.out.println ( "response.hasEntity ( ) = " + response.hasEntity ( ) );
+
+		if ( response.getStatus ( ) != 200 )
+			throw new RuntimeException ( "request failed with status " + response.getStatus ( ) );
+
+		System.out.println ( "response.readEntity ( ) = " + response.readEntity ( String.class ) );
+	}
+}

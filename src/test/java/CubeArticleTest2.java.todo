@@ -1,0 +1,49 @@
+
+
+
+import java.io.File;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+
+import org.junit.Test;
+
+public class CubeArticleTest2
+{
+	@Test
+	public void main( String[] args ) throws JAXBException
+	{
+		System.out.println ( "\n --- test1( )" );
+		
+		File xml = new File ( "config.xml" );
+		
+		Beans beans = new Beans ( );
+		Bean bean = new Bean ( );
+		bean.setId ( "viewResolver" );
+		bean.setClassName ( "org.springframework.web.servlet.view.InternalResourceViewResolver" );
+		Resources resources = new Resources ( );
+		resources.setMapping ( "/resources/**" );
+		resources.setLocation ( "/resources/" );
+		ComponentScan componentScan = new ComponentScan ( );
+		componentScan.setBasePackage ( "examples" );
+		beans.setBean ( bean );
+		beans.setResources ( resources );
+		beans.setComponentScan ( componentScan );
+		
+		JAXBContext contx = JAXBContext.newInstance ( Beans.class );
+		Marshaller marshaller = contx.createMarshaller ( );
+		
+		marshaller.setProperty (
+			Marshaller.JAXB_SCHEMA_LOCATION, 
+			"http://www.springframework.org/schema/mvc " + 
+			"http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd " + 
+			"http://www.springframework.org/schema/beans " + 
+			"http://www.springframework.org/schema/beans/spring-beans.xsd " + 
+			"http://www.springframework.org/schema/context " + 
+			"http://www.springframework.org/schema/context/spring-context-4.0.xsd" );
+		
+		marshaller.setProperty ( Marshaller.JAXB_FORMATTED_OUTPUT, true ); // Pretty Print the xml
+		marshaller.marshal ( beans, xml );
+	}
+}

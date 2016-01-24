@@ -1,0 +1,6 @@
+.classpath
+.project
+.settings/
+jaxb_tests/
+target/
+*.orig

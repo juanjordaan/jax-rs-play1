@@ -1,0 +1,31 @@
+
+import java.io.File;
+import java.util.Collections;
+
+import org.jboss.arquillian.junit.InSequence;
+import org.junit.Test;
+
+import com.sun.tools.jxc.SchemaGenTask;
+import com.sun.tools.jxc.SchemaGenTask.Schema;
+import com.sun.tools.jxc.api.JXC;
+import com.sun.tools.xjc.api.J2SJAXBModel;
+import com.sun.tools.xjc.api.JavaCompiler;
+
+public class SchemaGenTest
+{
+	String schemasDir = "src/main/webapp/schemas";
+	
+	@Test
+	@InSequence(1)
+	public void testPost(  )
+	{
+		File xml = new File ( schemasDir );
+		SchemaGenTask schemaGenTask = new SchemaGenTask ( );
+		schemaGenTask.setEpisode ( xml );
+		Schema schema = schemaGenTask.createSchema ( );
+		schema.setFile ( "asd.xsd" );
+		
+		JavaCompiler jc = JXC.createJavaCompiler ( );
+		J2SJAXBModel asd = jc.bind ( Collections.EMPTY_LIST, Collections.EMPTY_MAP, "", null );
+	}
+}

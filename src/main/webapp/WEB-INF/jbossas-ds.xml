@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<datasources xmlns="http://www.jboss.org/ironjacamar/schema"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+        http://www.jboss.org/ironjacamar/schema
+        http://docs.jboss.org/ironjacamar/schema/datasources_1_0.xsd">
+	
+	<datasource jta="true" jndi-name="java:global/datasources/wsur2TestDS" pool-name="wsur2TestDSPool" enabled="true" use-ccm="true">
+		<connection-url>jdbc:mysql://localhost:3306/wsur2_test</connection-url>
+		<driver-class>com.mysql.jdbc.Driver</driver-class>
+		<driver>mysql</driver>
+		
+		<pool>
+			<min-pool-size>1</min-pool-size>
+			<max-pool-size>100</max-pool-size>
+		</pool>
+		
+		<security>
+			<user-name>juan</user-name>
+			<password>letmein</password>
+		</security>
+		
+		<validation>
+			<validate-on-match>false</validate-on-match>
+			<background-validation>false</background-validation>
+		</validation>
+	</datasource>
+</datasources>

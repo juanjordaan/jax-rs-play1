@@ -1,0 +1,12 @@
+<?xml version = "1.0" encoding = "UTF-8"?>
+<web-app>
+	<!-- <servlet>
+		<servlet-name>RESTEasy WADL</servlet-name>
+		<servlet-class>org.jboss.resteasy.wadl.ResteasyWadlServlet</servlet-class>
+	</servlet>
+	
+	<servlet-mapping>
+		<servlet-name>RESTEasy WADL</servlet-name>
+		<url-pattern>/resources/application.xml</url-pattern>
+	</servlet-mapping> -->
+</web-app>
